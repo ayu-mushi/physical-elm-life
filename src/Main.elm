@@ -12,11 +12,13 @@ import Vector
 import Random
 import List.Extra
 
+-- ばね
 
 type alias Life = { position : Vector.Vector2
                     , velocity : Vector.Vector2
                     , size : Float
                     , lifeType : LifeType
+                    , isDead : Bool
                     }
 type LifeType = Creature | Graviton {lifespan : Float}
 
@@ -37,7 +39,8 @@ randomLife = let pos_x = Random.float 0 width
              in Random.map4 (\x y v_x v_y -> {position = Vector.Vector2 x y,
                                                    velocity = Vector.Vector2 v_x v_y,
                                                    size = size,
-                                                   lifeType=Creature}) pos_x pos_y vel_x vel_y
+                                                   lifeType=Creature,
+                                                   isDead=False}) pos_x pos_y vel_x vel_y
 randomGraviton : Random.Generator Life
 randomGraviton = Random.map (\l ->
               {l | lifeType = Graviton {lifespan=1000},

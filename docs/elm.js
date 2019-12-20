@@ -5463,6 +5463,7 @@ var $author$project$Main$randomLife = function () {
 		F4(
 			function (x, y, v_x, v_y) {
 				return {
+					isDead: false,
 					lifeType: $author$project$Main$Creature,
 					position: A2($author$project$Vector$Vector2, x, y),
 					size: size,
