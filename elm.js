@@ -5370,6 +5370,25 @@ var $elm$random$Random$list = F2(
 				return A4($elm$random$Random$listHelp, _List_Nil, n, gen, seed);
 			});
 	});
+var $elm$random$Random$map2 = F3(
+	function (func, _v0, _v1) {
+		var genA = _v0.a;
+		var genB = _v1.a;
+		return $elm$random$Random$Generator(
+			function (seed0) {
+				var _v2 = genA(seed0);
+				var a = _v2.a;
+				var seed1 = _v2.b;
+				var _v3 = genB(seed1);
+				var b = _v3.a;
+				var seed2 = _v3.b;
+				return _Utils_Tuple2(
+					A2(func, a, b),
+					seed2);
+			});
+	});
+var $author$project$Main$Graviton = {$: 'Graviton'};
+var $author$project$Main$Creature = {$: 'Creature'};
 var $author$project$Vector$Vector2 = F2(
 	function (x, y) {
 		return {x: x, y: y};
@@ -5442,6 +5461,7 @@ var $author$project$Main$randomLife = function () {
 		F4(
 			function (x, y, v_x, v_y) {
 				return {
+					lifeType: $author$project$Main$Creature,
 					position: A2($author$project$Vector$Vector2, x, y),
 					size: size,
 					velocity: A2($author$project$Vector$Vector2, v_x, v_y)
@@ -5452,12 +5472,24 @@ var $author$project$Main$randomLife = function () {
 		vel_x,
 		vel_y);
 }();
+var $author$project$Main$randomGraviton = A2(
+	$elm$random$Random$map,
+	function (l) {
+		return _Utils_update(
+			l,
+			{lifeType: $author$project$Main$Graviton, size: 10});
+	},
+	$author$project$Main$randomLife);
 var $author$project$Main$init = _Utils_Tuple2(
 	{lifes: _List_Nil},
 	A2(
 		$elm$random$Random$generate,
 		$author$project$Main$AddLifes,
-		A2($elm$random$Random$list, 10, $author$project$Main$randomLife)));
+		A3(
+			$elm$random$Random$map2,
+			$elm$core$Basics$append,
+			A2($elm$random$Random$list, 10, $author$project$Main$randomLife),
+			A2($elm$random$Random$list, 10, $author$project$Main$randomGraviton))));
 var $elm$browser$Browser$AnimationManager$Delta = function (a) {
 	return {$: 'Delta', a: a};
 };
@@ -5852,20 +5884,38 @@ var $author$project$Vector$toTuple = function (_v0) {
 	return _Utils_Tuple2(x, y);
 };
 var $author$project$Main$render = function (life) {
-	return A2(
-		$joakin$elm_canvas$Canvas$shapes,
-		_List_fromArray(
-			[
-				$joakin$elm_canvas$Canvas$Settings$fill(
-				A3($avh4$elm_color$Color$hsl, 0.5, 0.3, 0.7))
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$joakin$elm_canvas$Canvas$circle,
-				$author$project$Vector$toTuple(life.position),
-				life.size)
-			]));
+	var _v0 = life.lifeType;
+	if (_v0.$ === 'Creature') {
+		return A2(
+			$joakin$elm_canvas$Canvas$shapes,
+			_List_fromArray(
+				[
+					$joakin$elm_canvas$Canvas$Settings$fill(
+					A3($avh4$elm_color$Color$hsl, 0.5, 0.3, 0.7))
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$joakin$elm_canvas$Canvas$circle,
+					$author$project$Vector$toTuple(life.position),
+					life.size)
+				]));
+	} else {
+		return A2(
+			$joakin$elm_canvas$Canvas$shapes,
+			_List_fromArray(
+				[
+					$joakin$elm_canvas$Canvas$Settings$fill(
+					A3($avh4$elm_color$Color$hsl, 0.5, 0.2, 0.2))
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$joakin$elm_canvas$Canvas$circle,
+					$author$project$Vector$toTuple(life.position),
+					life.size)
+				]));
+	}
 };
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;

@@ -15,7 +15,9 @@ import Random
 type alias Life = { position : Vector.Vector2
                     , velocity : Vector.Vector2
                     , size : Float
+                    , lifeType : LifeType
                     }
+type LifeType = Creature | Graviton
 
 type alias Model =
     { lifes : List Life }
@@ -33,7 +35,11 @@ randomLife = let pos_x = Random.float 0 width
                  size = 30
              in Random.map4 (\x y v_x v_y -> {position = Vector.Vector2 x y,
                                                    velocity = Vector.Vector2 v_x v_y,
-                                                   size = size}) pos_x pos_y vel_x vel_y
+                                                   size = size,
+                                                   lifeType=Creature}) pos_x pos_y vel_x vel_y
+randomGraviton : Random.Generator Life
+randomGraviton = Random.map (\l -> {l | lifeType = Graviton, size = 10}) randomLife
+
 
 main : Program () Model Msg
 main =
@@ -47,7 +53,9 @@ main =
 
 init : (Model, Cmd Msg)
 init = ({lifes=[]}
-        , Random.generate AddLifes (Random.list 10 randomLife))
+        , (Random.generate AddLifes (Random.map2 (++)
+                                                 (Random.list 10 randomLife)
+                                                 (Random.list 10 randomGraviton))))
 
 --{ lifes = [ {position= Vector.fromTuple (100, 100),
 --                     size=70,velocity=Vector.fromTuple (4,4)},
@@ -130,7 +138,11 @@ clearScreen =
 
 
 render life =
-    shapes
+  case life.lifeType of
+    Creature ->
+      shapes
         [fill (Color.hsl 0.5 0.3 0.7)]
         [ circle (Vector.toTuple life.position) life.size ]
--- transform [ translate (Tuple.first life.position) (Tuple.second life.position) , rotate 0]
+    Graviton -> shapes
+        [fill (Color.hsl 0.5 0.2 0.2)]
+        [ circle (Vector.toTuple life.position) life.size ]
