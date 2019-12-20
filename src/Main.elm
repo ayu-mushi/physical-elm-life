@@ -17,7 +17,7 @@ type alias Life = { position : Vector.Vector2
                     , size : Float
                     , lifeType : LifeType
                     }
-type LifeType = Creature | Graviton
+type LifeType = Creature | Graviton {lifespan : Float}
 
 type alias Model =
     { lifes : List Life }
@@ -38,7 +38,7 @@ randomLife = let pos_x = Random.float 0 width
                                                    size = size,
                                                    lifeType=Creature}) pos_x pos_y vel_x vel_y
 randomGraviton : Random.Generator Life
-randomGraviton = Random.map (\l -> {l | lifeType = Graviton, size = 10}) randomLife
+randomGraviton = Random.map (\l -> {l | lifeType = Graviton {lifespan=1000}, size = 10}) randomLife
 
 
 main : Program () Model Msg
@@ -68,7 +68,9 @@ init = ({lifes=[]}
 lifeUpdate : Life -> Life
 lifeUpdate life = let new_pos = Vector.add life.position life.velocity
     in
-    moveTo life new_pos
+        case life.lifeType of
+          (Graviton {lifespan}) -> let new_life = {life | lifeType = Graviton {lifespan=(lifespan - 1)}} in moveTo new_life new_pos
+          Creature -> moveTo life new_pos
 
 isColliding : Life -> Life -> Bool
 isColliding lifeA lifeB = Vector.mag (Vector.sub lifeA.position lifeB.position) <= ((lifeA.size + lifeB.size))
@@ -137,12 +139,13 @@ clearScreen =
     shapes [ fill Color.white ] [ rect ( 0, 0 ) width height ]
 
 
+render : Life -> Canvas.Renderable
 render life =
   case life.lifeType of
     Creature ->
       shapes
         [fill (Color.hsl 0.5 0.3 0.7)]
         [ circle (Vector.toTuple life.position) life.size ]
-    Graviton -> shapes
-        [fill (Color.hsl 0.5 0.2 0.2)]
+    Graviton {lifespan}-> shapes
+        [fill (Color.hsl 0.5 (lifespan/100) 0.2)]
         [ circle (Vector.toTuple life.position) life.size ]

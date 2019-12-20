@@ -5387,7 +5387,9 @@ var $elm$random$Random$map2 = F3(
 					seed2);
 			});
 	});
-var $author$project$Main$Graviton = {$: 'Graviton'};
+var $author$project$Main$Graviton = function (a) {
+	return {$: 'Graviton', a: a};
+};
 var $author$project$Main$Creature = {$: 'Creature'};
 var $author$project$Vector$Vector2 = F2(
 	function (x, y) {
@@ -5477,7 +5479,11 @@ var $author$project$Main$randomGraviton = A2(
 	function (l) {
 		return _Utils_update(
 			l,
-			{lifeType: $author$project$Main$Graviton, size: 10});
+			{
+				lifeType: $author$project$Main$Graviton(
+					{lifespan: 1000}),
+				size: 10
+			});
 	},
 	$author$project$Main$randomLife);
 var $author$project$Main$init = _Utils_Tuple2(
@@ -5658,7 +5664,19 @@ var $author$project$Main$moveTo = F2(
 	});
 var $author$project$Main$lifeUpdate = function (life) {
 	var new_pos = A2($author$project$Vector$add, life.position, life.velocity);
-	return A2($author$project$Main$moveTo, life, new_pos);
+	var _v0 = life.lifeType;
+	if (_v0.$ === 'Graviton') {
+		var lifespan = _v0.a.lifespan;
+		var new_life = _Utils_update(
+			life,
+			{
+				lifeType: $author$project$Main$Graviton(
+					{lifespan: lifespan - 1})
+			});
+		return A2($author$project$Main$moveTo, new_life, new_pos);
+	} else {
+		return A2($author$project$Main$moveTo, life, new_pos);
+	}
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
@@ -5901,12 +5919,13 @@ var $author$project$Main$render = function (life) {
 					life.size)
 				]));
 	} else {
+		var lifespan = _v0.a.lifespan;
 		return A2(
 			$joakin$elm_canvas$Canvas$shapes,
 			_List_fromArray(
 				[
 					$joakin$elm_canvas$Canvas$Settings$fill(
-					A3($avh4$elm_color$Color$hsl, 0.5, 0.2, 0.2))
+					A3($avh4$elm_color$Color$hsl, 0.5, lifespan / 100, 0.2))
 				]),
 			_List_fromArray(
 				[
