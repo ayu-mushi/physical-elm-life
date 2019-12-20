@@ -31,9 +31,9 @@ type Msg
 randomLife : Random.Generator Life
 randomLife = let pos_x = Random.float 0 width
                  pos_y = Random.float 0 height
-                 vel_x = Random.float 0 2
-                 vel_y = Random.float 0 2
-                 size = 10
+                 vel_x = Random.float 0 5
+                 vel_y = Random.float 0 5
+                 size = 5
              in Random.map4 (\x y v_x v_y -> {position = Vector.Vector2 x y,
                                                    velocity = Vector.Vector2 v_x v_y,
                                                    size = size,
@@ -41,7 +41,7 @@ randomLife = let pos_x = Random.float 0 width
 randomGraviton : Random.Generator Life
 randomGraviton = Random.map (\l ->
               {l | lifeType = Graviton {lifespan=1000},
-              size = 10})
+              size = 5})
               randomLife
 
 
@@ -58,7 +58,7 @@ main =
 init : (Model, Cmd Msg)
 init = ({lifes=[]}
         , (Random.generate AddLifes (Random.map2 (++)
-                                                 (Random.list 10 randomLife)
+                                                 (Random.list 100 randomLife)
                                                  (Random.list 1 randomGraviton))))
 lifeUpdate : Life -> List Life
 lifeUpdate life = let new_pos = Vector.add life.position life.velocity
@@ -85,7 +85,7 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
                 case msg of
                     Frame _ ->
-                        ( ( { model | lifes = List.concat <| combAccumWith (\x y -> ifColDoCol x y) <| (updateLifeAll model) }), Cmd.none )
+                        ( (\lifes -> collisionUpdateAll {lifes=lifes})<| (updateLifeAll model), Cmd.none )
                     AddLifes lifes ->
                         ( { model | lifes = lifes ++ model.lifes}, Cmd.none )
 
@@ -133,23 +133,6 @@ whenCollide : Life -> Life -> (Life, List Life)
 whenCollide l m = case m.lifeType of
                     Graviton {lifespan}-> ({l | lifeType = Graviton {lifespan =lifespan}}, [])
                     Creature -> (l, [])
-
-collisionUpdate : Life -> Model -> List Life
-collisionUpdate life model =
-  (List.map (ifColDoCol life) model.lifes)
-  |> List.map (\(x, xs) -> x::xs)
-  |> List.concat
-
-comb : List a -> List (a,a)
-comb l = case l of
-  [] -> []
-  (x::xs) -> List.map (\y -> (x,y)) xs ++ comb xs
-
-combWith : (a -> a -> b) -> List a -> List b
-combWith f l = case l of
-  [] -> []
-  (x::xs) -> List.map (\y -> f x y) xs ++ combWith f xs
-
   -- isColliding で返ってきたxを使って他との当たり判定を続行する
 
 combAccumWith : (Life -> Life -> (Life, List Life)) -> List Life -> List (List Life)
@@ -158,13 +141,11 @@ combAccumWith f l = case l of
   (x::xs) -> (((\(v,w)->[v]::w)) (List.Extra.mapAccuml (\x_ y_ -> f x_ y_) x xs))
               ++ combAccumWith f xs
 
+collisionUpdate : Life -> Model -> List Life
+collisionUpdate life model =
+  (List.Extra.mapAccuml ifColDoCol life model.lifes)
+  |> (\(l, rest) -> l :: List.concat rest)
 
-collisionUpdateAll_ : Model -> List Life
-collisionUpdateAll_ model = model.lifes
-  |> List.map (\l -> collisionUpdate l model)
-  |> List.concat
-
--- これだとどんどんクローンが増えていってしまう
 collisionUpdateAll : Model -> Model
 collisionUpdateAll model =
   let new_lifes = List.map collisionUpdate model.lifes |> List.map ((|>) model) |> List.concat

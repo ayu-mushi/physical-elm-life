@@ -5453,9 +5453,9 @@ var $elm$random$Random$map4 = F5(
 	});
 var $author$project$Main$width = 800;
 var $author$project$Main$randomLife = function () {
-	var vel_y = A2($elm$random$Random$float, 0, 2);
-	var vel_x = A2($elm$random$Random$float, 0, 2);
-	var size = 10;
+	var vel_y = A2($elm$random$Random$float, 0, 5);
+	var vel_x = A2($elm$random$Random$float, 0, 5);
+	var size = 5;
 	var pos_y = A2($elm$random$Random$float, 0, $author$project$Main$height);
 	var pos_x = A2($elm$random$Random$float, 0, $author$project$Main$width);
 	return A5(
@@ -5482,7 +5482,7 @@ var $author$project$Main$randomGraviton = A2(
 			{
 				lifeType: $author$project$Main$Graviton(
 					{lifespan: 1000}),
-				size: 10
+				size: 5
 			});
 	},
 	$author$project$Main$randomLife);
@@ -5494,7 +5494,7 @@ var $author$project$Main$init = _Utils_Tuple2(
 		A3(
 			$elm$random$Random$map2,
 			$elm$core$Basics$append,
-			A2($elm$random$Random$list, 10, $author$project$Main$randomLife),
+			A2($elm$random$Random$list, 100, $author$project$Main$randomLife),
 			A2($elm$random$Random$list, 1, $author$project$Main$randomGraviton))));
 var $elm$browser$Browser$AnimationManager$Delta = function (a) {
 	return {$: 'Delta', a: a};
@@ -5626,57 +5626,6 @@ var $elm$browser$Browser$AnimationManager$onAnimationFrameDelta = function (tagg
 		$elm$browser$Browser$AnimationManager$Delta(tagger));
 };
 var $elm$browser$Browser$Events$onAnimationFrameDelta = $elm$browser$Browser$AnimationManager$onAnimationFrameDelta;
-var $elm_community$list_extra$List$Extra$mapAccuml = F3(
-	function (f, acc0, list) {
-		var _v0 = A3(
-			$elm$core$List$foldl,
-			F2(
-				function (x, _v1) {
-					var acc1 = _v1.a;
-					var ys = _v1.b;
-					var _v2 = A2(f, acc1, x);
-					var acc2 = _v2.a;
-					var y = _v2.b;
-					return _Utils_Tuple2(
-						acc2,
-						A2($elm$core$List$cons, y, ys));
-				}),
-			_Utils_Tuple2(acc0, _List_Nil),
-			list);
-		var accFinal = _v0.a;
-		var generatedList = _v0.b;
-		return _Utils_Tuple2(
-			accFinal,
-			$elm$core$List$reverse(generatedList));
-	});
-var $author$project$Main$combAccumWith = F2(
-	function (f, l) {
-		if (!l.b) {
-			return _List_Nil;
-		} else {
-			var x = l.a;
-			var xs = l.b;
-			return _Utils_ap(
-				function (_v1) {
-					var v = _v1.a;
-					var w = _v1.b;
-					return A2(
-						$elm$core$List$cons,
-						_List_fromArray(
-							[v]),
-						w);
-				}(
-					A3(
-						$elm_community$list_extra$List$Extra$mapAccuml,
-						F2(
-							function (x_, y_) {
-								return A2(f, x_, y_);
-							}),
-						x,
-						xs)),
-				A2($author$project$Main$combAccumWith, f, xs));
-		}
-	});
 var $elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -5746,6 +5695,51 @@ var $author$project$Main$ifColDoCol = F2(
 	function (x, y) {
 		return A2($author$project$Main$isColliding, x, y) ? A2($author$project$Main$whenCollide, x, y) : _Utils_Tuple2(x, _List_Nil);
 	});
+var $elm_community$list_extra$List$Extra$mapAccuml = F3(
+	function (f, acc0, list) {
+		var _v0 = A3(
+			$elm$core$List$foldl,
+			F2(
+				function (x, _v1) {
+					var acc1 = _v1.a;
+					var ys = _v1.b;
+					var _v2 = A2(f, acc1, x);
+					var acc2 = _v2.a;
+					var y = _v2.b;
+					return _Utils_Tuple2(
+						acc2,
+						A2($elm$core$List$cons, y, ys));
+				}),
+			_Utils_Tuple2(acc0, _List_Nil),
+			list);
+		var accFinal = _v0.a;
+		var generatedList = _v0.b;
+		return _Utils_Tuple2(
+			accFinal,
+			$elm$core$List$reverse(generatedList));
+	});
+var $author$project$Main$collisionUpdate = F2(
+	function (life, model) {
+		return function (_v0) {
+			var l = _v0.a;
+			var rest = _v0.b;
+			return A2(
+				$elm$core$List$cons,
+				l,
+				$elm$core$List$concat(rest));
+		}(
+			A3($elm_community$list_extra$List$Extra$mapAccuml, $author$project$Main$ifColDoCol, life, model.lifes));
+	});
+var $author$project$Main$collisionUpdateAll = function (model) {
+	var new_lifes = $elm$core$List$concat(
+		A2(
+			$elm$core$List$map,
+			$elm$core$Basics$apR(model),
+			A2($elm$core$List$map, $author$project$Main$collisionUpdate, model.lifes)));
+	return _Utils_update(
+		model,
+		{lifes: new_lifes});
+};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Vector$fromTuple = function (_v0) {
@@ -5810,18 +5804,11 @@ var $author$project$Main$update = F2(
 	function (msg, model) {
 		if (msg.$ === 'Frame') {
 			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						lifes: $elm$core$List$concat(
-							A2(
-								$author$project$Main$combAccumWith,
-								F2(
-									function (x, y) {
-										return A2($author$project$Main$ifColDoCol, x, y);
-									}),
-								$author$project$Main$updateLifeAll(model)))
-					}),
+				function (lifes) {
+					return $author$project$Main$collisionUpdateAll(
+						{lifes: lifes});
+				}(
+					$author$project$Main$updateLifeAll(model)),
 				$elm$core$Platform$Cmd$none);
 		} else {
 			var lifes = msg.a;
