@@ -17,8 +17,11 @@ sub a b = add a (inverse b)
 prod : Vector2 -> Vector2 -> Float
 prod v w = v.x*w.x + v.y*w.y
 
+square  : Vector2 -> Float
+square v = (prod v v)
+
 mag :  Vector2 -> Float
-mag v = sqrt (prod v v)
+mag v = sqrt (square v)
 
 
 fromTuple : (Float, Float) -> Vector2

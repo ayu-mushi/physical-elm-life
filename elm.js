@@ -5494,8 +5494,8 @@ var $author$project$Main$init = _Utils_Tuple2(
 		A3(
 			$elm$random$Random$map2,
 			$elm$core$Basics$append,
-			A2($elm$random$Random$list, 10, $author$project$Main$randomLife),
-			A2($elm$random$Random$list, 10, $author$project$Main$randomGraviton))));
+			A2($elm$random$Random$list, 1, $author$project$Main$randomLife),
+			A2($elm$random$Random$list, 2, $author$project$Main$randomGraviton))));
 var $elm$browser$Browser$AnimationManager$Delta = function (a) {
 	return {$: 'Delta', a: a};
 };
@@ -5626,10 +5626,112 @@ var $elm$browser$Browser$AnimationManager$onAnimationFrameDelta = function (tagg
 		$elm$browser$Browser$AnimationManager$Delta(tagger));
 };
 var $elm$browser$Browser$Events$onAnimationFrameDelta = $elm$browser$Browser$AnimationManager$onAnimationFrameDelta;
+var $author$project$Main$combWith = F2(
+	function (f, l) {
+		if (!l.b) {
+			return _List_Nil;
+		} else {
+			var x = l.a;
+			var xs = l.b;
+			return _Utils_ap(
+				A2(
+					$elm$core$List$map,
+					function (y) {
+						return A2(f, x, y);
+					},
+					xs),
+				A2($author$project$Main$combWith, f, xs));
+		}
+	});
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
+var $elm$core$Basics$sqrt = _Basics_sqrt;
+var $author$project$Vector$prod = F2(
+	function (v, w) {
+		return (v.x * w.x) + (v.y * w.y);
+	});
+var $author$project$Vector$square = function (v) {
+	return A2($author$project$Vector$prod, v, v);
+};
+var $author$project$Vector$mag = function (v) {
+	return $elm$core$Basics$sqrt(
+		$author$project$Vector$square(v));
+};
 var $author$project$Vector$add = F2(
 	function (a, b) {
 		return A2($author$project$Vector$Vector2, a.x + b.x, a.y + b.y);
 	});
+var $author$project$Vector$mul = F2(
+	function (c, v) {
+		return A2($author$project$Vector$Vector2, c * v.x, c * v.y);
+	});
+var $author$project$Vector$inverse = function (a) {
+	return A2($author$project$Vector$mul, -1, a);
+};
+var $author$project$Vector$sub = F2(
+	function (a, b) {
+		return A2(
+			$author$project$Vector$add,
+			a,
+			$author$project$Vector$inverse(b));
+	});
+var $author$project$Main$isColliding = F2(
+	function (lifeA, lifeB) {
+		return _Utils_cmp(
+			$author$project$Vector$mag(
+				A2($author$project$Vector$sub, lifeA.position, lifeB.position)),
+			lifeA.size + lifeB.size) < 1;
+	});
+var $author$project$Main$whenCollide = F2(
+	function (l, m) {
+		var _v0 = l.lifeType;
+		if (_v0.$ === 'Graviton') {
+			var lifespan = _v0.a.lifespan;
+			return _List_fromArray(
+				[
+					_Utils_update(
+					l,
+					{lifeType: $author$project$Main$Creature})
+				]);
+		} else {
+			return _List_fromArray(
+				[
+					_Utils_update(
+					l,
+					{
+						lifeType: $author$project$Main$Graviton(
+							{lifespan: 100})
+					})
+				]);
+		}
+	});
+var $author$project$Main$collisionUpdateAll = function (model) {
+	var new_lifes = $elm$core$List$concat(
+		A2(
+			$author$project$Main$combWith,
+			F2(
+				function (x, y) {
+					return A2($author$project$Main$isColliding, x, y) ? _Utils_ap(
+						A2($author$project$Main$whenCollide, x, y),
+						A2($author$project$Main$whenCollide, y, x)) : _List_fromArray(
+						[x, y]);
+				}),
+			model.lifes));
+	return _Utils_update(
+		model,
+		{lifes: new_lifes});
+};
+var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Vector$fromTuple = function (_v0) {
 	var x = _v0.a;
 	var y = _v0.b;
@@ -5673,22 +5775,31 @@ var $author$project$Main$lifeUpdate = function (life) {
 				lifeType: $author$project$Main$Graviton(
 					{lifespan: lifespan - 1})
 			});
-		return A2($author$project$Main$moveTo, new_life, new_pos);
+		return _List_fromArray(
+			[
+				A2($author$project$Main$moveTo, new_life, new_pos)
+			]);
 	} else {
-		return A2($author$project$Main$moveTo, life, new_pos);
+		return _List_fromArray(
+			[
+				A2($author$project$Main$moveTo, life, new_pos)
+			]);
 	}
 };
-var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $author$project$Main$updateLifeAll = function (model) {
+	return $elm$core$List$concat(
+		A2($elm$core$List$map, $author$project$Main$lifeUpdate, model.lifes));
+};
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		if (msg.$ === 'Frame') {
 			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						lifes: A2($elm$core$List$map, $author$project$Main$lifeUpdate, model.lifes)
-					}),
+				$author$project$Main$collisionUpdateAll(
+					_Utils_update(
+						model,
+						{
+							lifes: $author$project$Main$updateLifeAll(model)
+						})),
 				$elm$core$Platform$Cmd$none);
 		} else {
 			var lifes = msg.a;
@@ -6662,48 +6773,26 @@ var $joakin$elm_canvas$Canvas$toHtml = F3(
 			attrs,
 			entities);
 	});
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
-var $author$project$Vector$prod = F2(
-	function (v, w) {
-		return (v.x * w.x) + (v.y * w.y);
-	});
-var $elm$core$Basics$sqrt = _Basics_sqrt;
-var $author$project$Vector$mag = function (v) {
-	return $elm$core$Basics$sqrt(
-		A2($author$project$Vector$prod, v, v));
-};
-var $author$project$Vector$mul = F2(
-	function (c, v) {
-		return A2($author$project$Vector$Vector2, c * v.x, c * v.y);
-	});
-var $author$project$Vector$inverse = function (a) {
-	return A2($author$project$Vector$mul, -1, a);
-};
-var $author$project$Vector$sub = F2(
-	function (a, b) {
-		return A2(
-			$author$project$Vector$add,
-			a,
-			$author$project$Vector$inverse(b));
-	});
-var $author$project$Main$isColliding = F2(
-	function (lifeA, lifeB) {
-		return _Utils_cmp(
-			$author$project$Vector$mag(
-				A2($author$project$Vector$sub, lifeA.position, lifeB.position)),
-			lifeA.size + lifeB.size) < 1;
-	});
 var $elm$core$Basics$neq = _Utils_notEqual;
+var $author$project$Main$howManyCollision = function (model) {
+	return A3(
+		$elm$core$List$foldl,
+		$elm$core$Basics$add,
+		0,
+		$elm$core$List$concat(
+			A2(
+				$elm$core$List$map,
+				function (f) {
+					return A2($elm$core$List$map, f, model.lifes);
+				},
+				A2(
+					$elm$core$List$map,
+					F2(
+						function (x, y) {
+							return ((!_Utils_eq(x, y)) && A2($author$project$Main$isColliding, x, y)) ? 1 : 0;
+						}),
+					model.lifes))));
+};
 var $author$project$Main$isThereCollision = function (model) {
 	return A3(
 		$elm$core$List$foldl,
@@ -6734,7 +6823,9 @@ var $author$project$Main$viewCollision = function (model) {
 			]),
 		_List_fromArray(
 			[
-				$elm$html$Html$text('Colliding')
+				$elm$html$Html$text(
+				'Colliding: ' + $elm$core$String$fromInt(
+					$author$project$Main$howManyCollision(model)))
 			])) : A2(
 		$elm$html$Html$div,
 		_List_fromArray(
