@@ -116,7 +116,7 @@ view model =
         [ (Canvas.toHtml
             ( width, height )
             [ style "border" "2px solid rgba(0,0,0,0.1)" ]
-            ([ clearScreen] ++ (List.map render model.lifes)))
+            ([clearScreen]++ (List.map render model.lifes)))
         ]),
      viewCollision model
    ]
@@ -134,13 +134,6 @@ whenCollide l m = case m.lifeType of
                     Graviton {lifespan}-> ({l | lifeType = Graviton {lifespan =lifespan}}, [])
                     Creature -> (l, [])
   -- isColliding で返ってきたxを使って他との当たり判定を続行する
-
-combAccumWith : (Life -> Life -> (Life, List Life)) -> List Life -> List (List Life)
-combAccumWith f l = case l of
-  [] -> []
-  (x::xs) -> (((\(v,w)->[v]::w)) (List.Extra.mapAccuml (\x_ y_ -> f x_ y_) x xs))
-              ++ combAccumWith f xs
-
 collisionUpdate : Life -> Model -> List Life
 collisionUpdate life model =
   (List.Extra.mapAccuml ifColDoCol life model.lifes)
