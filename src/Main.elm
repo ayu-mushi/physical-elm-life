@@ -9,6 +9,7 @@ import Color
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (style)
 import Vector
+import Random
 
 
 type alias Life = { position : Vector.Vector2
@@ -21,8 +22,18 @@ type alias Model =
 
 
 type Msg
-    = Frame Float
+    = AddLifes (List Life)
+    | Frame Float
 
+randomLife : Random.Generator Life
+randomLife = let pos_x = Random.float 0 width
+                 pos_y = Random.float 0 height
+                 vel_x = Random.float 0 20
+                 vel_y = Random.float 0 20
+                 size = 30
+             in Random.map4 (\x y v_x v_y -> {position = Vector.Vector2 x y,
+                                                   velocity = Vector.Vector2 v_x v_y,
+                                                   size = size}) pos_x pos_y vel_x vel_y
 
 main : Program () Model Msg
 main =
@@ -33,18 +44,18 @@ main =
         , subscriptions = \model -> onAnimationFrameDelta Frame
         }
 
-defaultAnimal : Life
-defaultAnimal = {position= Vector.fromTuple (100, 100),
-                     size=30,velocity=Vector.fromTuple (0,1)}
+
 init : (Model, Cmd Msg)
-init = ({ lifes = [ {position= Vector.fromTuple (100, 100),
-                     size=70,velocity=Vector.fromTuple (4,4)},
-                    {position=Vector.fromTuple(10, 10),
-                    size=70, velocity=Vector.fromTuple(5,2)},
-                    {position=Vector.fromTuple(100, 100),
-                    size=70, velocity=Vector.fromTuple(-6,-4)}
-                    ] }
-        , Cmd.none)
+init = ({lifes=[]}
+        , Random.generate AddLifes (Random.list 10 randomLife))
+
+--{ lifes = [ {position= Vector.fromTuple (100, 100),
+--                     size=70,velocity=Vector.fromTuple (4,4)},
+--                    {position=Vector.fromTuple(10, 10),
+--                    size=70, velocity=Vector.fromTuple(5,2)},
+--                    {position=Vector.fromTuple(100, 100),
+--                    size=70, velocity=Vector.fromTuple(-6,-4)}
+--                    ] }
 
 lifeUpdate : Life -> Life
 lifeUpdate life = let new_pos = Vector.add life.position life.velocity
@@ -68,6 +79,8 @@ update msg model =
                 case msg of
                     Frame _ ->
                         ( { model | lifes = List.map lifeUpdate model.lifes }, Cmd.none )
+                    AddLifes lifes ->
+                        ( { model | lifes = lifes ++ model.lifes}, Cmd.none )
 
 width =
     800
