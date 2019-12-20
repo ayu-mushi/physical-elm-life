@@ -56,15 +56,6 @@ init = ({lifes=[]}
         , (Random.generate AddLifes (Random.map2 (++)
                                                  (Random.list 10 randomLife)
                                                  (Random.list 10 randomGraviton))))
-
---{ lifes = [ {position= Vector.fromTuple (100, 100),
---                     size=70,velocity=Vector.fromTuple (4,4)},
---                    {position=Vector.fromTuple(10, 10),
---                    size=70, velocity=Vector.fromTuple(5,2)},
---                    {position=Vector.fromTuple(100, 100),
---                    size=70, velocity=Vector.fromTuple(-6,-4)}
---                    ] }
-
 lifeUpdate : Life -> Life
 lifeUpdate life = let new_pos = Vector.add life.position life.velocity
     in
@@ -147,5 +138,5 @@ render life =
         [fill (Color.hsl 0.5 0.3 0.7)]
         [ circle (Vector.toTuple life.position) life.size ]
     Graviton {lifespan}-> shapes
-        [fill (Color.hsl 0.5 (lifespan/100) 0.2)]
+        [fill (Color.hsl 0.5 1 0.2)]
         [ circle (Vector.toTuple life.position) life.size ]

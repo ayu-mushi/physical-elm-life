@@ -5925,7 +5925,7 @@ var $author$project$Main$render = function (life) {
 			_List_fromArray(
 				[
 					$joakin$elm_canvas$Canvas$Settings$fill(
-					A3($avh4$elm_color$Color$hsl, 0.5, lifespan / 100, 0.2))
+					A3($avh4$elm_color$Color$hsl, 0.5, 1, 0.2))
 				]),
 			_List_fromArray(
 				[
