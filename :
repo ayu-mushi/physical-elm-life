@@ -64,7 +64,7 @@ main =
 init : (Model, Cmd Msg)
 init = ({lifes=[]}
         , (Random.generate AddLifes (Random.map2 (++)
-                                                 (Random.list 100 randomLife)
+                                                 (Random.list 10 randomLife)
                                                  (Random.list 0 randomGraviton))))
 lifeUpdate : Life -> List Life
 lifeUpdate life = let new_pos = Vector.add life.position life.velocity
@@ -161,7 +161,7 @@ collisionUpdateAll model =
   let new_lifes = List.map collisionUpdate model.lifes |> List.map ((|>) model) |> List.concat
   in {model | lifes=new_lifes}
 
-ifColDoCol x y = if isColliding x y && x /= y then whenCollide x y else (x, [])
+ifColDoCol x y = if isColliding x y then whenCollide x y else (x, [])
 
 howManyCollision : Model -> Int
 howManyCollision model =

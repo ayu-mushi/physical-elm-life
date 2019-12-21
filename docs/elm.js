@@ -5496,7 +5496,7 @@ var $author$project$Main$init = _Utils_Tuple2(
 			$elm$random$Random$map2,
 			$elm$core$Basics$append,
 			A2($elm$random$Random$list, 100, $author$project$Main$randomLife),
-			A2($elm$random$Random$list, 1, $author$project$Main$randomGraviton))));
+			A2($elm$random$Random$list, 0, $author$project$Main$randomGraviton))));
 var $elm$browser$Browser$AnimationManager$Delta = function (a) {
 	return {$: 'Delta', a: a};
 };
@@ -5627,6 +5627,22 @@ var $elm$browser$Browser$AnimationManager$onAnimationFrameDelta = function (tagg
 		$elm$browser$Browser$AnimationManager$Delta(tagger));
 };
 var $elm$browser$Browser$Events$onAnimationFrameDelta = $elm$browser$Browser$AnimationManager$onAnimationFrameDelta;
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$Main$buryLifes = $elm$core$List$filter(
+	function (l) {
+		return !l.isDead;
+	});
 var $elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -5675,26 +5691,45 @@ var $author$project$Main$isColliding = F2(
 				A2($author$project$Vector$sub, lifeA.position, lifeB.position)),
 			lifeA.size + lifeB.size) < 1;
 	});
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Main$whenCollide = F2(
-	function (l, m) {
-		var _v0 = m.lifeType;
+	function (self, other) {
+		var _v0 = self.lifeType;
 		if (_v0.$ === 'Graviton') {
-			var lifespan = _v0.a.lifespan;
-			return _Utils_Tuple2(
-				_Utils_update(
-					l,
-					{
-						lifeType: $author$project$Main$Graviton(
-							{lifespan: lifespan})
-					}),
-				_List_Nil);
+			var x = _v0.a;
+			var _v1 = other.lifeType;
+			if (_v1.$ === 'Graviton') {
+				var y = _v1.a;
+				return _Utils_Tuple2(self, _List_Nil);
+			} else {
+				return _Utils_Tuple2(self, _List_Nil);
+			}
 		} else {
-			return _Utils_Tuple2(l, _List_Nil);
+			var _v2 = other.lifeType;
+			if (_v2.$ === 'Graviton') {
+				var x = _v2.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						self,
+						{
+							lifeType: $author$project$Main$Graviton(
+								{lifespan: 100})
+						}),
+					_List_Nil);
+			} else {
+				return _Utils_Tuple2(
+					_Utils_update(
+						self,
+						{
+							velocity: $author$project$Vector$inverse(self.velocity)
+						}),
+					_List_Nil);
+			}
 		}
 	});
 var $author$project$Main$ifColDoCol = F2(
 	function (x, y) {
-		return A2($author$project$Main$isColliding, x, y) ? A2($author$project$Main$whenCollide, x, y) : _Utils_Tuple2(x, _List_Nil);
+		return (A2($author$project$Main$isColliding, x, y) && (!_Utils_eq(x, y))) ? A2($author$project$Main$whenCollide, x, y) : _Utils_Tuple2(x, _List_Nil);
 	});
 var $elm_community$list_extra$List$Extra$mapAccuml = F3(
 	function (f, acc0, list) {
@@ -5805,11 +5840,18 @@ var $author$project$Main$update = F2(
 	function (msg, model) {
 		if (msg.$ === 'Frame') {
 			return _Utils_Tuple2(
-				function (lifes) {
-					return $author$project$Main$collisionUpdateAll(
-						{lifes: lifes});
+				function (new_model) {
+					return _Utils_update(
+						new_model,
+						{
+							lifes: $author$project$Main$buryLifes(new_model.lifes)
+						});
 				}(
-					$author$project$Main$updateLifeAll(model)),
+					function (lifes) {
+						return $author$project$Main$collisionUpdateAll(
+							{lifes: lifes});
+					}(
+						$author$project$Main$updateLifeAll(model))),
 				$elm$core$Platform$Cmd$none);
 		} else {
 			var lifes = msg.a;
@@ -6783,7 +6825,6 @@ var $joakin$elm_canvas$Canvas$toHtml = F3(
 			attrs,
 			entities);
 	});
-var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Main$howManyCollision = function (model) {
 	return A3(
 		$elm$core$List$foldl,
@@ -6803,29 +6844,10 @@ var $author$project$Main$howManyCollision = function (model) {
 						}),
 					model.lifes))));
 };
-var $author$project$Main$isThereCollision = function (model) {
-	return A3(
-		$elm$core$List$foldl,
-		$elm$core$Basics$or,
-		false,
-		$elm$core$List$concat(
-			A2(
-				$elm$core$List$map,
-				function (f) {
-					return A2($elm$core$List$map, f, model.lifes);
-				},
-				A2(
-					$elm$core$List$map,
-					F2(
-						function (x, y) {
-							return (!_Utils_eq(x, y)) && A2($author$project$Main$isColliding, x, y);
-						}),
-					model.lifes))));
-};
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$Main$viewCollision = function (model) {
-	return $author$project$Main$isThereCollision(model) ? A2(
+	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
@@ -6836,15 +6858,6 @@ var $author$project$Main$viewCollision = function (model) {
 				$elm$html$Html$text(
 				'Colliding: ' + $elm$core$String$fromInt(
 					$author$project$Main$howManyCollision(model)))
-			])) : A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				A2($elm$html$Html$Attributes$style, 'color', 'red')
-			]),
-		_List_fromArray(
-			[
-				$elm$html$Html$text('Not Colliding')
 			]));
 };
 var $author$project$Main$view = function (model) {
