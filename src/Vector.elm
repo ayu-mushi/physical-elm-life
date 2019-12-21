@@ -5,8 +5,17 @@ type alias Vector2 = {x :Float, y: Float}
 add : Vector2 -> Vector2 -> Vector2
 add a b = Vector2 (a.x+b.x) (a.y+b.y)
 
+zero : Vector2
+zero = {x = 0, y = 0}
+
+sum : List Vector2 -> Vector2
+sum = List.foldl add zero
+
 mul : Float -> Vector2 -> Vector2
 mul c v = Vector2 (c * v.x) (c * v.y)
+
+div  : Float -> Vector2 -> Vector2
+div c v = Vector2 ((1/c) * v.x) ((1/c) * v.y)
 
 inverse : Vector2 -> Vector2
 inverse a = mul (-1) a
@@ -23,6 +32,13 @@ square v = (prod v v)
 mag :  Vector2 -> Float
 mag v = sqrt (square v)
 
+normalize : Vector2 -> Vector2
+normalize v = div (mag v) v
+
+setSizeTo : Float -> Vector2 -> Vector2
+setSizeTo c v = v
+                |> normalize
+                |> mul c
 
 fromTuple : (Float, Float) -> Vector2
 fromTuple (x,y) = Vector2 x y

@@ -149,7 +149,17 @@ whenCollide self other = case self.lifeType of
                       Creature   -> (self, [])
                     Creature -> case other.lifeType of
                       Graviton x -> ({self|lifeType = Graviton {lifespan=100}}, [])
-                      Creature -> ({self|velocity = Vector.inverse self.velocity}, [])
+                      Creature -> ({self|velocity = [ self.velocity
+                                                        |> Vector.mul 0.92
+                                                     , other.velocity
+                                                        |> Vector.mul 0.08
+                                                     , other.position
+                                                        |> Vector.sub self.position
+                                                        |> Vector.mul 0.01
+                                                     ]
+                                                       |> Vector.sum
+                                                       |> Vector.setSizeTo 5
+                                                     }, [])
   -- isColliding で返ってきたxを使って他との当たり判定を続行する
 collisionUpdate : Life -> Model -> List Life
 collisionUpdate life model =

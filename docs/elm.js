@@ -5692,6 +5692,25 @@ var $author$project$Main$isColliding = F2(
 			lifeA.size + lifeB.size) < 1;
 	});
 var $elm$core$Basics$neq = _Utils_notEqual;
+var $author$project$Vector$div = F2(
+	function (c, v) {
+		return A2($author$project$Vector$Vector2, (1 / c) * v.x, (1 / c) * v.y);
+	});
+var $author$project$Vector$normalize = function (v) {
+	return A2(
+		$author$project$Vector$div,
+		$author$project$Vector$mag(v),
+		v);
+};
+var $author$project$Vector$setSizeTo = F2(
+	function (c, v) {
+		return A2(
+			$author$project$Vector$mul,
+			c,
+			$author$project$Vector$normalize(v));
+	});
+var $author$project$Vector$zero = {x: 0, y: 0};
+var $author$project$Vector$sum = A2($elm$core$List$foldl, $author$project$Vector$add, $author$project$Vector$zero);
 var $author$project$Main$whenCollide = F2(
 	function (self, other) {
 		var _v0 = self.lifeType;
@@ -5721,7 +5740,19 @@ var $author$project$Main$whenCollide = F2(
 					_Utils_update(
 						self,
 						{
-							velocity: $author$project$Vector$inverse(self.velocity)
+							velocity: A2(
+								$author$project$Vector$setSizeTo,
+								5,
+								$author$project$Vector$sum(
+									_List_fromArray(
+										[
+											A2($author$project$Vector$mul, 0.92, self.velocity),
+											A2($author$project$Vector$mul, 0.08, other.velocity),
+											A2(
+											$author$project$Vector$mul,
+											0.01,
+											A2($author$project$Vector$sub, self.position, other.position))
+										])))
 						}),
 					_List_Nil);
 			}
